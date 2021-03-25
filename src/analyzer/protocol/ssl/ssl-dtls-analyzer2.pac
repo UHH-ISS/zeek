@@ -355,7 +355,7 @@ refine connection SSL_Conn += {
 				}
 
 			EVP_CIPHER_CTX_free(ctx);
-			bro_analyzer()->ForwardHTTPData(decrl, reinterpret_cast<const u_char*>(decr), is_orig);
+			bro_analyzer()->ForwardDecryptedData(decrl, reinterpret_cast<const u_char*>(decr), is_orig);
 
 			free(decr);
 			return true;

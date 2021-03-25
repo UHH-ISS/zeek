@@ -19,6 +19,7 @@ SSL_Analyzer::SSL_Analyzer(Connection* c)
 	had_gap = false;
 	secret_ = new zeek::StringVal(0, "");
 	keys_ = new zeek::StringVal(0, "");
+	pia = nullptr;
 	}
 
 SSL_Analyzer::~SSL_Analyzer()
@@ -106,21 +107,28 @@ void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	interp->NewGap(orig, len);
 	}
 
-void SSL_Analyzer::ForwardHTTPData(int len, const u_char* data, bool orig)
+void SSL_Analyzer::ForwardDecryptedData(int len, const u_char* data, bool orig)
 	{
-	if (!initialized)
+	if ( ! pia )
 		{
+		pia = new analyzer::pia::PIA_TCP(Conn());
+		if ( AddChildAnalyzer(pia) )
+			{
+			pia->FirstPacket(true, nullptr);
+			pia->FirstPacket(false, nullptr);
+			}
+		else
+			reporter->FatalError("Could not initialize PIA");
+
+		// and also statically add HTTP/H2 at the moment. We should move this bit
+		// to scriptland
 		auto http = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
-		if (http)
-			{
+		if ( http )
 			AddChildAnalyzer(http);
-			}
 		auto http2 = analyzer_mgr->InstantiateAnalyzer("HTTP2", Conn());
-		if (http2)
-			{
+		if ( http2 )
 			AddChildAnalyzer(http2);
-			}
 		}
-		initialized = true;
+
 	ForwardStream(len, data, orig);
 	}

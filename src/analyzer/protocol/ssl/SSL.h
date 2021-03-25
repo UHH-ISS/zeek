@@ -3,6 +3,7 @@
 #include "events.bif.h"
 
 #include "analyzer/protocol/tcp/TCP.h"
+#include "analyzer/protocol/pia/PIA.h"
 
 namespace binpac { namespace SSL { class SSL_Conn; } }
 
@@ -39,7 +40,7 @@ public:
 		{ return new SSL_Analyzer(conn); }
 
 	binpac::TLSHandshake::Handshake_Conn* handshake() { return handshake_interp; }
-	void ForwardHTTPData(int len, const u_char* data, bool orig);
+	void ForwardDecryptedData(int len, const u_char* data, bool orig);
 
 protected:
 	binpac::SSL::SSL_Conn* interp;
@@ -48,7 +49,7 @@ protected:
 
 	zeek::StringVal* secret_;
 	zeek::StringVal* keys_;
-	bool initialized = false;
+	analyzer::pia::PIA_TCP *pia;
 };
 
 } } // namespace analyzer::*
