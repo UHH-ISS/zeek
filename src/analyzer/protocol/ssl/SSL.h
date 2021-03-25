@@ -25,17 +25,30 @@ public:
 	// Tell the analyzer that encryption has started.
 	void StartEncryption();
 
+	// Key material for decryption
+	zeek::StringVal* secret() { return secret_; }
+	void SetSecret(const u_char* secret, int len);
+
+	zeek::StringVal* keys() { return keys_; }
+	void SetKeys(const u_char* keys, int len);
+
 	// Overriden from tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
 		{ return new SSL_Analyzer(conn); }
 
+	binpac::TLSHandshake::Handshake_Conn* handshake() { return handshake_interp; }
+	void ForwardHTTPData(int len, const u_char* data, bool orig);
+
 protected:
 	binpac::SSL::SSL_Conn* interp;
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
 	bool had_gap;
 
+	zeek::StringVal* secret_;
+	zeek::StringVal* keys_;
+	bool initialized = false;
 };
 
 } } // namespace analyzer::*

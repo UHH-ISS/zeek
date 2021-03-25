@@ -89,7 +89,7 @@ type UnknownRecord(rec: SSLRecord) = record {
 };
 
 type CiphertextRecord(rec: SSLRecord) = record {
-	cont : bytestring &restofdata &transient;
+	cont : bytestring &restofdata;
 };
 
 ######################################################################
@@ -102,12 +102,16 @@ refine connection SSL_Conn += {
 		int client_state_;
 		int server_state_;
 		int record_layer_version_;
+		uint32 c_seq_;
+		uint32 s_seq_;
 	%}
 
 	%init{
 		server_state_ = STATE_CLEAR;
 		client_state_ = STATE_CLEAR;
 		record_layer_version_ = UNKNOWN_VERSION;
+		c_seq_ = 0x00;
+		s_seq_ = 0x00;
 	%}
 
 	function client_state() : int %{ return client_state_; %}

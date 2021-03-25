@@ -44,7 +44,7 @@ refine connection SSL_Conn += {
 		return true;
 		%}
 
-	function proc_ciphertext_record(rec : SSLRecord) : bool
+	function proc_ciphertext_record(rec : SSLRecord, cont: bytestring) : bool
 		%{
 		 if ( client_state_ == STATE_ENCRYPTED &&
 		      server_state_ == STATE_ENCRYPTED &&
@@ -57,7 +57,8 @@ refine connection SSL_Conn += {
 
 		if ( ssl_encrypted_data )
 			zeek::BifEvent::enqueue_ssl_encrypted_data(bro_analyzer(),
-				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length});
+				bro_analyzer()->Conn(), ${rec.is_orig}, ${rec.raw_tls_version}, ${rec.content_type}, ${rec.length},
+				zeek::make_intrusive<zeek::StringVal>(cont.length(), (const char*) cont.data()));
 
 		return true;
 		%}
@@ -117,7 +118,7 @@ refine typeattr UnknownRecord += &let {
 };
 
 refine typeattr CiphertextRecord += &let {
-	proc : bool = $context.connection.proc_ciphertext_record(rec);
+	proc : bool = $context.connection.proc_ciphertext_record(rec, cont);
 }
 
 refine typeattr PlaintextRecord += &let {

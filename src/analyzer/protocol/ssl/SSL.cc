@@ -1,5 +1,6 @@
 
 #include "SSL.h"
+#include "analyzer/Manager.h"
 #include "analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "Reporter.h"
 #include "util.h"
@@ -16,12 +17,16 @@ SSL_Analyzer::SSL_Analyzer(Connection* c)
 	interp = new binpac::SSL::SSL_Conn(this);
 	handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);
 	had_gap = false;
+	secret_ = new zeek::StringVal(0, "");
+	keys_ = new zeek::StringVal(0, "");
 	}
 
 SSL_Analyzer::~SSL_Analyzer()
 	{
 	delete interp;
 	delete handshake_interp;
+	delete secret_;
+	delete keys_;
 	}
 
 void SSL_Analyzer::Done()
@@ -46,6 +51,16 @@ void SSL_Analyzer::StartEncryption()
 	interp->startEncryption(true);
 	interp->startEncryption(false);
 	interp->setEstablished();
+	}
+
+void SSL_Analyzer::SetSecret(const u_char* secret, int len)
+	{
+	secret_ = new zeek::StringVal(len, (const char *) secret);
+	}
+
+void SSL_Analyzer::SetKeys(const u_char* keys, int len)
+	{
+	keys_ = new zeek::StringVal(len, (const char *) keys);
 	}
 
 void SSL_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
@@ -89,4 +104,23 @@ void SSL_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 	had_gap = true;
 	interp->NewGap(orig, len);
+	}
+
+void SSL_Analyzer::ForwardHTTPData(int len, const u_char* data, bool orig)
+	{
+	if (!initialized)
+		{
+		auto http = analyzer_mgr->InstantiateAnalyzer("HTTP", Conn());
+		if (http)
+			{
+			AddChildAnalyzer(http);
+			}
+		auto http2 = analyzer_mgr->InstantiateAnalyzer("HTTP2", Conn());
+		if (http2)
+			{
+			AddChildAnalyzer(http2);
+			}
+		}
+		initialized = true;
+	ForwardStream(len, data, orig);
 	}

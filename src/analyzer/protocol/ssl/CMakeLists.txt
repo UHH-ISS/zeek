@@ -10,8 +10,8 @@ zeek_plugin_bif(events.bif)
 zeek_plugin_bif(functions.bif)
 zeek_plugin_bif(consts.bif)
 zeek_plugin_pac(tls-handshake.pac tls-handshake-protocol.pac tls-handshake-analyzer.pac ssl-defs.pac
-	proc-client-hello.pac
-	proc-server-hello.pac
+	proc-client-hello-tls.pac
+	proc-server-hello-tls.pac
 	proc-certificate.pac
 	tls-handshake-signed_certificate_timestamp.pac
 )
@@ -19,6 +19,8 @@ zeek_plugin_pac(ssl.pac ssl-dtls-analyzer.pac ssl-analyzer.pac ssl-dtls-protocol
 	proc-client-hello.pac
 	proc-server-hello.pac
 	proc-certificate.pac
+	ssl-dtls-analyzer.pac
+	ssl-dtls-analyzer2.pac
 )
 zeek_plugin_pac(dtls.pac ssl-dtls-analyzer.pac dtls-analyzer.pac ssl-dtls-protocol.pac dtls-protocol.pac ssl-defs.pac)
 zeek_plugin_end()

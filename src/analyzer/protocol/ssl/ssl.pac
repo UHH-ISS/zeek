@@ -37,6 +37,6 @@ flow SSL_Flow(is_orig: bool) {
 	flowunit = SSLPDU(is_orig) withcontext(connection, this);
 }
 
-%include ssl-dtls-analyzer.pac
+%include ssl-dtls-analyzer2.pac
 %include ssl-analyzer.pac
 %include ssl-defs.pac
